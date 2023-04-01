@@ -10,6 +10,19 @@ const threads = Router();
 threads.use(auth);
 
 threads.post("/new", async (req, res: AuthedRes) => {
+    const {type: threadType} = req.body;
+
+    if (!threadType) {
+        return res.status(400).json({
+            message: "Missing data."
+        })
+    }
+    if (threadType === "public") {
+        return res.status(400).json({
+            message: "You can't create a public chat."
+        })
+    }
+
     const threadObj: ThreadT = {
         owner: {
             id: res.locals.user.uid,
@@ -25,7 +38,9 @@ threads.post("/new", async (req, res: AuthedRes) => {
         },
 
         members: [res.locals.user.uid],
-        createdAt: Timestamp.now()
+        createdAt: Timestamp.now(),
+
+        type: threadType
     }
 
     const threadRef = await fs.collection("threads").doc();

@@ -1,8 +1,8 @@
-import {useState} from "react";
+import {useCallback, useState} from "react";
 
 export type HookSet<T> = {
     add: (v: T) => void,
-    del: (v: T) => boolean,
+    delete: (v: T) => boolean,
     has: (v: T) => boolean,
     values: () => Iterable<T>,
     size: number
@@ -34,7 +34,7 @@ export const useSet = <T>(): HookSet<T> => {
 
 
     return {
-        add, del, has,
+        add, delete: del, has,
         size: state.size,
         values: state.values
     }
@@ -42,7 +42,7 @@ export const useSet = <T>(): HookSet<T> => {
 
 // map
 
-type Dict<T> = {[key: string]: T};
+type Dict<T> = { [key: string]: T };
 export type UseDictT<T> = [
     Dict<T>, (key: string, val: T) => void, (key: string) => void
 ];
@@ -51,10 +51,10 @@ export const useDict = <T>(defaultValue?: Dict<T> | (() => Dict<T>)): UseDictT<T
 
     const setKey = (key: string, value: T) => {
         setState(oldState => {
-           return {
-               ...oldState,
-               [key]: value
-           }
+            return {
+                ...oldState,
+                [key]: value
+            }
         });
     }
 
@@ -66,5 +66,56 @@ export const useDict = <T>(defaultValue?: Dict<T> | (() => Dict<T>)): UseDictT<T
         });
     }
 
-    return [state, setKey, deleteKey];
+    return [{...state}, setKey, deleteKey];
 }
+
+// map hook
+
+export type MapOrEntries<K, V> = Map<K, V> | [K, V][]
+
+// Public interface
+export interface Actions<K, V> {
+    set: (key: K, value: V) => void
+    setAll: (entries: MapOrEntries<K, V>) => void
+    delete: (key: K) => void
+    reset: Map<K, V>['clear']
+}
+
+// We hide some setters from the returned map to disable autocompletion
+type Return<K, V> = [Omit<Map<K, V>, 'set' | 'clear' | 'delete'>, Actions<K, V>]
+
+export function useMap<K, V>(
+    initialState: MapOrEntries<K, V> = new Map(),
+): Return<K, V> {
+    const [map, setMap] = useState(new Map(initialState))
+
+    const actions: Actions<K, V> = {
+        set: useCallback((key, value) => {
+            setMap(prev => {
+                const copy = new Map(prev)
+                copy.set(key, value)
+                return copy
+            })
+        }, []),
+
+        setAll: useCallback(entries => {
+            setMap(() => new Map(entries))
+        }, []),
+
+        delete: useCallback(key => {
+            setMap(prev => {
+                const copy = new Map(prev)
+                copy.delete(key)
+                return copy
+            })
+        }, []),
+
+        reset: useCallback(() => {
+            setMap(() => new Map())
+        }, []),
+    }
+
+    return [map, actions]
+}
+
+export default useMap

@@ -4,12 +4,14 @@ import {T} from "../../contexts/TransContext";
 import {useNavigate} from "react-router";
 import {useApi} from "../../contexts/ApiContext";
 import {buttonCls} from "../../styles";
+import {Alert, useAlerts} from "../../contexts/AlertsContext";
 
 export default function Sidebar() {
     const navigate = useNavigate();
     const api = useApi();
 
     const [loading, setLoading] = useState(false);
+    const [err, setErr] = useState<string>();
 
     return <div className={clsx(
         "w-full h-full",
@@ -21,18 +23,27 @@ export default function Sidebar() {
             disabled={loading}
             onClick={async () => {
                 setLoading(true);
+                setErr(undefined);
                 try {
-                    const threadId = await api.createThread();
+                    const threadId = await api.createThread("group");
 
+                    setErr(undefined);
                     navigate(`/t/${threadId}`);
                 } catch (e) {
-                    alert(e);
+                    setErr((e as Error).message);
                 }
                 setLoading(false);
             }}
         >
             <i className="fa fa-plus text-sm"/>
             <span><T>New Chat</T></span>
+
+            {loading ? <Alert loading>
+                <T>Creating new thread...</T>
+            </Alert> : null}
+            {err ? <Alert err>
+                <span>Error: </span><T>{err}</T>
+            </Alert> : null}
         </button>
     </div>
 }

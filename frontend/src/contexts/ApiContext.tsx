@@ -4,6 +4,7 @@ import {useUser} from "./UserContext";
 import {Outlet} from "react-router";
 import {getAuth, getIdToken} from "firebase/auth";
 import {useAuthState} from "react-firebase-hooks/auth";
+import {ThreadT} from "../schemas/thread";
 
 const BASE_URLs = {
     dev: "http://127.0.0.1:5001/tardis-chat/us-central1/api",
@@ -53,9 +54,11 @@ class Api {
     }
 
     // threads
-    async createThread(): Promise<string> {
+    async createThread(threadType: ThreadT["type"]): Promise<string> {
         try {
-            const res = await this.http.post("/threads/new");
+            const res = await this.http.post("/threads/new", {
+                type: threadType
+            });
             return res.data.threadId as string;
         }  catch (err) {
             return this.handleAxiosErr(err);

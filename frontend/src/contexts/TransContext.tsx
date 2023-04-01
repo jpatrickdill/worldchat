@@ -40,7 +40,7 @@ export function TransContextProvider({children}: {children?: ReactNode}) {
     }
 
     const onStopTranslation = (v: string) => {
-        inProgress.del(v);
+        inProgress.delete(v);
     }
 
     const val = {
@@ -206,7 +206,7 @@ export function LoadingTranslationsAlert() {
     const {chatConfig} = useUser();
 
     if (inProgress > 0) {
-        return <Alert loading minDuration={500}>
+        return <Alert id="translating" loading minDuration={1000}>
             <T>
                 Please wait while we finish translating the UI to
             </T>
