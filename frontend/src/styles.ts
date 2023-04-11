@@ -6,8 +6,9 @@ export const inputCls = clsx(
 )
 
 export const buttonCls = clsx(
-    "rounded-md border border-gray-400 text-gray-600 hover:bg-gray-200",
+    "rounded-md overflow-hidden",
+    "text-gray-600 hover:bg-gray-200",
     "flex gap-x-2 items-center px-3 py-2",
     "transition-all",
-    "disabled:hover:cursor-not-allowed disabled:hover:bg-transparent"
+    "disabled:hover:cursor-not-allowed"
 )

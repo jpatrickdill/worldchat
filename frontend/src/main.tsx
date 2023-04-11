@@ -9,6 +9,7 @@ import {UserContextProvider} from "./contexts/UserContext";
 import {ApiProvider} from "./contexts/ApiContext";
 import {LoadingTranslationsAlert, TransContextProvider} from "./contexts/TransContext";
 import {AlertsProvider} from "./contexts/AlertsContext";
+import {ThreadsProvider} from "@/contexts/ThreadsContext";
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
     <React.StrictMode>
@@ -17,9 +18,11 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
                 <UserContextProvider>
                     <TransContextProvider>
                         <AlertsProvider>
-                            <LoadingTranslationsAlert/>
+                            <ThreadsProvider>
+                                <LoadingTranslationsAlert/>
 
-                            <App/>
+                                <App/>
+                            </ThreadsProvider>
                         </AlertsProvider>
                     </TransContextProvider>
                 </UserContextProvider>

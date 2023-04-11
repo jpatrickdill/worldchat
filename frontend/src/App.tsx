@@ -6,8 +6,11 @@ import Welcome from "./pages/Welcome/Welcome";
 import {ApiProvider} from "./contexts/ApiContext";
 import {LoadingTranslationsAlert, useTransContext} from "./contexts/TransContext";
 import InitialSetup from "./pages/InitialSetup/InitialSetup";
-import Layout from "./components/Layout/Layout";
+import Layout from "./layout/Layout";
 import {Alert} from "./contexts/AlertsContext";
+import ThreadRoutes from "@/pages/Thread/ThreadRoutes";
+import UseInvite from "@/pages/Invites/UseInvite";
+import Settings from "@/pages/Settings/Settings";
 
 function App() {
     const {userLoading, configLoading, chatConfig} = useUser();
@@ -30,9 +33,13 @@ function App() {
                 <Route element={<Layout/>}>
                     <Route index element={<Welcome/>}/>
 
+                    <Route path="join/:inviteId" element={<UseInvite/>}/>
+
+                    <Route path="t/:threadId/*" element={<ThreadRoutes/>}/>
+
+                    <Route path="settings" element={<Settings/>}/>
                     <Route path="*" element={<Welcome/>}/>
                 </Route>
-
             </Route>
         </Routes>
     </div>

@@ -5,6 +5,7 @@ import {Outlet} from "react-router";
 import {getAuth, getIdToken} from "firebase/auth";
 import {useAuthState} from "react-firebase-hooks/auth";
 import {ThreadT} from "../schemas/thread";
+import {LanguageType} from "@/schemas/langauge";
 
 const BASE_URLs = {
     dev: "http://127.0.0.1:5001/tardis-chat/us-central1/api",
@@ -39,6 +40,7 @@ class Api {
     // error handler
 
     handleAxiosErr<T>(err: unknown) {
+        console.log(err);
         if (isAxiosError(err)) {
             if (err.response) {
                 throw new Error(err.response.data.message)
@@ -60,6 +62,38 @@ class Api {
                 type: threadType
             });
             return res.data.threadId as string;
+        }  catch (err) {
+            return this.handleAxiosErr(err);
+        }
+    }
+
+    async createInvite(threadId: string): Promise<string> {
+        try {
+            const res = await this.http.post(`/threads/${threadId}/invite`);
+
+            return res.data.inviteId as string;
+        }  catch (err) {
+            return this.handleAxiosErr(err);
+        }
+    }
+
+    async useInvite(inviteCode: string): Promise<string> {
+        try {
+            const res = await this.http.post(`threads/join/${inviteCode}`);
+
+            return res.data.threadId as string;
+        }  catch (err) {
+            return this.handleAxiosErr(err);
+        }
+    }
+
+    async sendMessage(threadId: string, content: string, language: LanguageType) {
+        try {
+            const res = await this.http.post(`threads/${threadId}/message`, {
+                content, language
+            });
+
+            return res.data.messageId as string;
         }  catch (err) {
             return this.handleAxiosErr(err);
         }

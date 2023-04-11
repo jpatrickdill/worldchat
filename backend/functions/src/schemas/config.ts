@@ -1,13 +1,10 @@
 import {z} from "zod";
+import {languageSchema} from "./langauge";
 
 export const chatConfigSchema = z.object({
     displayName: z.string().nullable().optional(),
 
-    language: z.object({
-        code: z.string(),
-        name: z.string().optional(),
-        region: z.string().nullable().optional()
-    }).optional(),
+    language: languageSchema.optional(),
 
     setupComplete: z.boolean().default(false)
 })

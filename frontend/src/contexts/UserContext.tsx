@@ -6,6 +6,7 @@ import {useDocumentData} from "react-firebase-hooks/firestore";
 import {ChatConfigType, chatConfigSchema} from "../schemas/config";
 import {Outlet} from "react-router";
 import InitialSetup from "../pages/InitialSetup/InitialSetup";
+import {getLangName} from "@/components/LanguageDropdown";
 
 interface userContextT {
     chatConfig?: ChatConfigType,
@@ -32,9 +33,10 @@ export function UserContextProvider({children}: {children?: ReactNode}) {
     // set blank chat config if none is present
     useEffect(() => {
         if (!configData && !configLoading && authUser) {
+            let code = navigator.language.split("-")[0].toLowerCase()
             setDoc(configDocRef, {
                 language: {
-                    code: navigator.language.split("-")[0].toLowerCase(),
+                    code, name: getLangName(code),
                     region: null
                 },
                 displayName: null
@@ -44,7 +46,7 @@ export function UserContextProvider({children}: {children?: ReactNode}) {
 
     let chatConfig: ChatConfigType | undefined;
 
-    if (configData) chatConfig = chatConfigSchema.parse(configData);
+    if (configData) chatConfig = configData as ChatConfigType;
 
     const ctxVal: userContextT = {
         chatConfig: chatConfig,

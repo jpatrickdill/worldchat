@@ -1,9 +1,8 @@
 import {useUser} from "./UserContext";
 import {useApi} from "./ApiContext";
-import {createContext, ReactNode, useContext, useEffect, useRef, useState} from "react";
+import {Children, createContext, ReactNode, useContext, useEffect, useRef, useState} from "react";
 import {doc, getDoc, getFirestore} from "firebase/firestore";
-import crypto from "crypto";
-import {HookSet, useSet} from "../utils/hooks";
+import {useSet} from "@/utils/hooks";
 import {Alert} from "./AlertsContext";
 
 const getFirestoreId = (text: string) => {
@@ -171,24 +170,27 @@ export function T({children}: {children?: ReactNode}) {
         This element automatically translates its innerText to the user's selected language.
      */
 
+    // if the child of <T> is just a string, we will translate that string
+    let singleChild = Children.count(children) === 1 && Children.toArray(children).at(0);
+    let childText = (typeof singleChild === "string") ? singleChild : undefined;
+
+    // otherwise we will render the element and use a ref to get the innerText
     const contentRef = useRef<HTMLSpanElement>(null);
-    const [ogText, setOgText] = useState<string>();
+    const [renderedText, setRenderedText] = useState<string>();
 
     // get the original innerText on first render, then translate
     useEffect(() => {
-        if (ogText) return;
-
         if (contentRef.current) {
-            setOgText(contentRef.current.innerText);
+            setRenderedText(contentRef.current.innerText);
         }
     }, [contentRef.current]);
 
-    const translated = useTranslation(ogText);
+    // prefer child string over rendered text - child string will always update
+    // the hook, rendered text has to be re-rendered for ref to fetch new text
+    const translated = useTranslation(childText ?? renderedText);
 
     if (translated) {
-        return <span>
-            {translated}
-        </span>
+        return <>{translated}</>;
     }
 
     return <span ref={contentRef}>

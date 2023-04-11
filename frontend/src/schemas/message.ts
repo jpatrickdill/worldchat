@@ -8,24 +8,27 @@ import {timestampType} from "./schemaUtils";
 export const messageSchema = z.object({
     author: z.object({
         id: z.string(),
-        name: z.string(),
-        language: languageSchema
+        name: z.string()
     }),
-    originalText: z.string(),
+    message: z.object({
+        language: languageSchema,
+        content: z.string()
+    }),
     translations: z.array(
         // this contains all translated versions of the message with their language/region,
         // as well as the original for the author
         z.object({
             language: languageSchema,
-            text: z.string()
+            content: z.string()
         })
-    ),
+    ).default([]),
     status: z.enum([
         "submitted",
         "processing",
         "translated",
-        "editSubmitted"
-    ]),
+        "error"
+    ]).default("submitted"),
+    statusMessage: z.string().nullable().optional(),
 
     createdAt: timestampType()
 })

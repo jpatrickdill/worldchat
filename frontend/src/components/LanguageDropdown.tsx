@@ -1,11 +1,11 @@
 import React from "react";
 import Select from "react-select";
-import {languageCodeList} from "../utils/languages";
-import {capitalize} from "../utils/misc";
+import {languageCodeList} from "@/utils/languages";
+import {capitalize} from "@/utils/misc";
 
 type MaybePromise<T> = T | Promise<T>
 
-const getLangName = (code: string) => new Intl.DisplayNames([code], {type: 'language'}).of(code)
+export const getLangName = (code: string) => new Intl.DisplayNames([code], {type: 'language'}).of(code)
 
 export default function LanguageDropdown({value, onChange}: {
     value?: string,

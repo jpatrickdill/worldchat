@@ -9,10 +9,4 @@ app.use(cors({origin: true}));
 app.use("/translate", translate);
 app.use("/threads", threads);
 
-app.use("/", (req, res) => {
-    res.json({
-        success: true
-    })
-})
-
 export default app;
