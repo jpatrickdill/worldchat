@@ -22,16 +22,16 @@ const langCompare = (a: LanguageType, b: LanguageType) => {
 type Translation = MessageT["message"];
 
 export default function Message({message}: { message: WithId<MessageT> }) {
-    const {user, chatConfig} = useUser();
+    const {user, langConfig} = useUser();
     const [hover, setHover] = useState(false);
     const [showOpposite, setShowOpposite] = useState(false);
 
     const {status} = message;
 
     const closestMatch = useMemo(() => {
-        if (!chatConfig?.language) return;
+        if (!langConfig?.language) return;
 
-        let myLang = chatConfig.language;
+        let myLang = langConfig.language;
         let translations = [...message.translations];
 
         translations.sort((a, b) => {
@@ -54,10 +54,10 @@ export default function Message({message}: { message: WithId<MessageT> }) {
         let text: string | undefined;
         if (message.author.id !== user?.uid) {
             text = message.message.content;
-        } else if (!!chatConfig?.language) {
+        } else if (!!langConfig?.language) {
             text = message.translations
                 .reduce<Translation[]>((acc, cur) => {
-                    if (cur.language.code !== chatConfig.language?.code) {
+                    if (cur.language.code !== langConfig.language?.code) {
                         if (!acc.find(tr => tr.language.code === cur.language.code)) {
                             acc.push(cur)
                         }
@@ -114,7 +114,7 @@ export default function Message({message}: { message: WithId<MessageT> }) {
         setHover(false)
     }}
         className={clsx(
-            "px-3 py-1"
+            "px-3 py-1 select-text"
         )}
     >
         <div className={clsx(
@@ -127,9 +127,9 @@ export default function Message({message}: { message: WithId<MessageT> }) {
                 "px-3 py-1 rounded-xl",
                 "flex justify-center items-center max-w-sm",
                 {
-                    "bg-gray-100 text-gray-600 border border-gray-200/20": message.author.id !== user?.uid,
-                    "bg-blue-500 text-white": message.author.id === user?.uid,
-                    "bg-red-500 text-white": msgErr
+                    "bg-background-accent text-copy-dark border border-background-accent-darker": message.author.id !== user?.uid,
+                    "bg-primary text-copy-white": message.author.id === user?.uid,
+                    "bg-red-500 text-copy-white": msgErr
                 }
             )}>
                 <div className="flex flex-col">
@@ -142,7 +142,7 @@ export default function Message({message}: { message: WithId<MessageT> }) {
                 {"flex-row-reverse": message.author.id === user?.uid}
             )}>
                 {message.author.id !== user?.uid ? <button
-                    className={clsx("font-semibold text-gray-500 hover:underline")}
+                    className={clsx("font-semibold text-copy-gray hover:underline")}
                     onClick={() => setShowOpposite(!showOpposite)}
                 >
                     {showOpposite ? <T>
@@ -152,7 +152,7 @@ export default function Message({message}: { message: WithId<MessageT> }) {
                     </T>}
                 </button> : null}
                 {(message.author.id === user?.uid) ? <button
-                    className={clsx("font-semibold text-gray-500 hover:underline")}
+                    className={clsx("font-semibold text-copy-gray hover:underline")}
                     onClick={() => setShowOpposite(!showOpposite)}
                 >
                     {showOpposite ? <T>
@@ -161,7 +161,7 @@ export default function Message({message}: { message: WithId<MessageT> }) {
                         Show translation
                     </T>}
                 </button> : null}
-                <span className="text-gray-500">
+                <span className="text-copy-gray">
                     {moment(message.createdAt.toDate()).format("h:mm A")}
                 </span>
             </div> : null}

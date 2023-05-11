@@ -3,12 +3,15 @@ import LanguageDropdown from "../../components/LanguageDropdown";
 import {useUser} from "../../contexts/UserContext";
 import React, {useState} from "react";
 import {T, useTranslation} from "../../contexts/TransContext";
-import {Alert} from "../../contexts/AlertsContext";
+import {Alert, useAlerts} from "../../contexts/AlertsContext";
 import WordMark from "../../components/WordMark";
-import {inputCls} from "../../styles";
+import {buttonCls, inputCls} from "../../styles";
+import {Link} from "react-router-dom";
+import {useApi} from "@/contexts/ApiContext";
 
 export default function InitialSetup({fullPage}: { fullPage?: boolean }) {
-    const {chatConfig, updateChatConfig} = useUser();
+    const {langConfig, updateLangConfig} = useUser();
+    const api = useApi();
     const [step, setStep] = useState(1);
 
     const [regionInput, setRegionInput] = useState("");
@@ -16,6 +19,8 @@ export default function InitialSetup({fullPage}: { fullPage?: boolean }) {
 
     const regionPlaceholder = useTranslation("Optional");
     const namePlaceholder = useTranslation("What's your name?");
+
+    const alerts = useAlerts();
 
     return <div className={clsx(
         {"flex h-full justify-center pt-24": fullPage}
@@ -29,7 +34,7 @@ export default function InitialSetup({fullPage}: { fullPage?: boolean }) {
         {/* actual setup */}
 
         <div className={clsx(
-            {"w-full max-w-md p-4 bg-white rounded-md": fullPage},
+            {"w-full max-w-md p-4 bg-background rounded-md": fullPage},
             "flex flex-col gap-2"
         )}>
             {step === 1 ? <>
@@ -42,9 +47,9 @@ export default function InitialSetup({fullPage}: { fullPage?: boolean }) {
                 <div className="flex gap-2 items-stretch">
                     <div className="flex-grow">
                         <LanguageDropdown
-                            value={chatConfig?.language?.code}
+                            value={langConfig?.language?.code}
                             onChange={async ({label, value}) => {
-                                await updateChatConfig({
+                                await updateLangConfig({
                                     language: {
                                         code: value,
                                         name: label,
@@ -57,7 +62,7 @@ export default function InitialSetup({fullPage}: { fullPage?: boolean }) {
 
                     <button
                         className={clsx(
-                            "bg-emerald-500 hover:bg-emerald-600 text-white",
+                            "bg-secondary hover:bg-secondary-dark text-copy-white",
                             "px-3 rounded-md text-lg"
                         )}
                         onClick={() => setStep(2)}
@@ -65,6 +70,24 @@ export default function InitialSetup({fullPage}: { fullPage?: boolean }) {
                         <i className="fa fa-arrow-right"/>
                     </button>
                 </div>
+
+                <div className="text-copy-gray text-sm mt-8 flex gap-3 items-center">
+                    <div className="border-t border-gray-400 flex-grow"/>
+                    <h2>
+                        <T>Already have an account?</T>
+                    </h2>
+                    <div className="border-t border-gray-400 flex-grow"/>
+                </div>
+
+                <Link
+                    to="/login"
+                    className={clsx(
+                        buttonCls, "text-copy-white flex gap-3 justify-center bg-secondary hover:bg-emerald-700"
+                    )}
+                >
+                    <T>Sign in</T>
+                    <i className="fa fa-arrow-right"/>
+                </Link>
             </> : null}
 
             {step === 2 ? <>
@@ -87,11 +110,11 @@ export default function InitialSetup({fullPage}: { fullPage?: boolean }) {
 
                     <button
                         className={clsx(
-                            "bg-emerald-500 hover:bg-emerald-600 text-white",
+                            "bg-secondary hover:bg-secondary-dark text-copy-white",
                             "px-3 rounded-md text-lg"
                         )}
                         onClick={async () => {
-                            await updateChatConfig({
+                            await updateLangConfig({
                                 "language.region": regionInput
                             });
                             setStep(3);
@@ -102,7 +125,7 @@ export default function InitialSetup({fullPage}: { fullPage?: boolean }) {
                 </div>
 
                 <div className="flex justify-center">
-                    <button className="text-gray-500 hover:text-gray-600 text-sm"
+                    <button className="text-copy-gray hover:text-copy-dark text-sm"
                             onClick={() => setStep(step - 1)}>
                         <T>Go back</T>
                     </button>
@@ -127,15 +150,23 @@ export default function InitialSetup({fullPage}: { fullPage?: boolean }) {
 
                     <button
                         className={clsx(
-                            "bg-emerald-500 hover:bg-emerald-600 text-white",
+                            "bg-secondary hover:bg-secondary-dark text-copy-white",
                             "px-3 rounded-md text-lg"
                         )}
                         onClick={async () => {
-                            await updateChatConfig({
-                                "displayName": displayName,
-                                "setupComplete": true
-                            });
-                            setStep(4);
+                            try {
+                                await api.updateProfile({
+                                    displayName
+                                });
+                                await updateLangConfig({
+                                    "displayName": displayName,
+                                    "setupComplete": true
+                                });
+                                setStep(4);
+                            } catch (e: any) {
+                                alerts.pushAlert(e.toString());
+                            }
+
                         }}
                     >
                         <i className="fa fa-arrow-right"/>
@@ -143,7 +174,7 @@ export default function InitialSetup({fullPage}: { fullPage?: boolean }) {
                 </div>
 
                 <div className="flex justify-center">
-                    <button className="text-gray-500 hover:text-gray-600 text-sm"
+                    <button className="text-copy-gray hover:text-copy-dark text-sm"
                             onClick={() => setStep(step - 1)}>
                         <T>Go back</T>
                     </button>

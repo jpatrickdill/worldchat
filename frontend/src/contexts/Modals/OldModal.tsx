@@ -1,7 +1,7 @@
 import React, {MouseEvent, ReactNode, useEffect, useRef} from "react";
 import clsx from "clsx";
 
-export default function Modal({children, className, bgCls, showing, onClose}: {
+export default function OldModal({children, className, bgCls, showing, onClose}: {
     children?: ReactNode,
     className?: string,
     bgCls?: string,
@@ -32,12 +32,20 @@ export default function Modal({children, className, bgCls, showing, onClose}: {
 
     return <div
         className={clsx(
-            "fixed w-screen h-screen top-0 left-0 overflow-auto flex justify-center items-center",
-            "z-10 bg-gray-600/50 backdrop-blur-lg", bgCls
+            "fixed w-screen h-screen top-0 left-0 overflow-auto",
+            "z-50 backdrop-blur-sm ", bgCls
         )}
+        onClick={e => e.stopPropagation()}
+        onScroll={e => e.stopPropagation()}
     >
-        <div className={clsx(className)} ref={contentRef}>
-            {children}
+        <div className="w-full h-full flex justify-center items-center px-2 pt-5 overflow-scroll">
+            <div className={clsx(
+                "bg-background rounded-2xl lg:rounded-xl overflow-hidden border-2 border-border shadow-lg",
+                "px-3 py-5 lg:px-5",
+                className
+            )} ref={contentRef}>
+                {children}
+            </div>
         </div>
     </div>
 }

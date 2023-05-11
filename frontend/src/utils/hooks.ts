@@ -118,4 +118,32 @@ export function useMap<K, V>(
     return [map, actions]
 }
 
+// state history hook
+
+export const useStateHistory = <T>(value: T, limit = 1) => {
+    const [history, setHistory] = useState(() => {
+        let initial = [value];
+        for (let i=0; i<limit; i++) initial.push(value);
+
+        return initial
+    });
+
+    if (value !== history[0]) {
+        setHistory(oldState => {
+            let newState = [
+                value,
+                ...oldState
+            ];
+
+            if (newState.length > limit + 1) newState.splice(limit + 1);
+
+            return newState;
+        })
+    }
+
+    return history.slice(1);
+}
+
+//
+
 export default useMap

@@ -5,22 +5,28 @@ import {useUser} from "@/contexts/UserContext";
 import {useCollection} from "react-firebase-hooks/firestore";
 import {WithId} from "@/schemas/types";
 import {Alert} from "@/contexts/AlertsContext";
-import {ChatConfigType} from "@/schemas/config";
+import {LangConfigType} from "@/schemas/config";
+import {ProfileType} from "@/schemas/profile";
 
-export type ThreadWithMembers = ThreadT & {
-    membersMap: { [key: string]: ChatConfigType | null }
+interface Member {
+    config: LangConfigType,
+    profile: ProfileType
+}
+
+export type LoadedThread = ThreadT & {
+    membersMap: { [key: string]: Member | null }
 }
 
 const ThreadsContext = createContext<{
-    threads: WithId<ThreadWithMembers>[],
+    threads: WithId<LoadedThread>[],
     loading: boolean
 }>(undefined!);
 
-export function ThreadsProvider({children}: {children?: ReactNode}) {
+export function ThreadsProvider({children}: { children?: ReactNode }) {
     const {user} = useUser();
 
     // members cache
-    const [allMembers, setAllMembers] = useState<{[key: string]: ChatConfigType | null}>({});
+    const [allMembers, setAllMembers] = useState<{ [key: string]: Member | null }>({});
 
     const q = query(
         collection(getFirestore(), "threads"),
@@ -29,16 +35,22 @@ export function ThreadsProvider({children}: {children?: ReactNode}) {
     const [snap, loading, err] = useCollection(q);
 
     const loadUsers = async (ids: string[]) => {
-        let promises: Promise<ChatConfigType | null>[] = [];
+        let promises: Promise<Member | null>[] = [];
 
         for (let userId of ids) {
             const getUser = async () => {
-                const userRef = doc(getFirestore(), `configs/${userId}`);
-                const userDoc = await getDoc(userRef);
+                const configRef = doc(getFirestore(), `configs/${userId}`);
+                const configDoc = await getDoc(configRef);
 
-                if (!userDoc.exists()) return null;
+                if (!configDoc.exists()) return null;
 
-                return (userDoc.data() as ChatConfigType) || null;
+                const profileRef = doc(getFirestore(), `profiles/${userId}`);
+                const profileDoc = await getDoc(profileRef);
+
+                return profileDoc.exists() ? {
+                        profile: profileDoc.data() as ProfileType,
+                        config: configDoc.data() as LangConfigType
+                    } : null;
             }
 
             promises.push(getUser())
@@ -57,7 +69,7 @@ export function ThreadsProvider({children}: {children?: ReactNode}) {
         })
     }
 
-    let threads: WithId<ThreadWithMembers>[] = useMemo(() => {
+    let threads: WithId<LoadedThread>[] = useMemo(() => {
         if (!snap) return [];
 
         // members to be loaded
@@ -66,7 +78,7 @@ export function ThreadsProvider({children}: {children?: ReactNode}) {
         let threads = snap.docs.map(doc => {
             let thread = doc.data() as ThreadT
 
-            let membersById: {[key: string]: ChatConfigType | null} = {};
+            let membersById: { [key: string]: Member | null } = {};
 
             for (let memberId of thread.members) {
                 if (allMembers[memberId] === undefined) {

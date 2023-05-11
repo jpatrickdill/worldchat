@@ -1,33 +1,51 @@
-import {useEffect, useRef, useState} from "react";
+import {useEffect, useLayoutEffect, useRef, useState} from "react";
 import clsx from "clsx";
 import {WithId} from "@/schemas/types";
-import {ThreadWithMembers} from "@/contexts/ThreadsContext";
+import {LoadedThread} from "@/contexts/ThreadsContext";
 import {T, useTranslation} from "@/contexts/TransContext";
 import {useApi} from "@/contexts/ApiContext";
 import {useUser} from "@/contexts/UserContext";
+import {useStateHistory} from "@/utils/hooks";
+import Button from "@/components/Button";
+import {useLayout} from "@/layout/Layout";
 
-export default function NewMessage({thread}: { thread: WithId<ThreadWithMembers> }) {
+export default function NewMessage({thread}: { thread: WithId<LoadedThread> }) {
     const api = useApi();
-    const {chatConfig} = useUser();
+    const {langConfig} = useUser();
 
-    const DEFAULT_HT = 40
+    const DEFAULT_HT = 40;
 
     const [message, setMessage] = useState("");
+    const [prevMessage] = useStateHistory(message);
     const [loading, setLoading] = useState(false);
 
-    const [height, setHeight] = useState(DEFAULT_HT);
     const textarea = useRef<HTMLTextAreaElement>(null);
 
-    useEffect(() => {
+    // automatic text box size
+
+    const [lines, setLines] = useState(1);
+    useLayoutEffect(() => {
         if (!textarea.current) return;
 
-        setHeight(Math.min(textarea.current.scrollHeight, 500));
-    }, [textarea.current?.value])
+        if (textarea.current.scrollHeight > textarea.current.offsetHeight) {
+            setLines(lines + 1);
+        }
+    });
+    useLayoutEffect(() => {
+        const curLines = message.split("\n").length;
+        const prevLines = prevMessage.split("\n").length;
+
+        if (curLines < prevLines) {
+            setLines(lines - (prevLines - curLines));
+        }
+    }, [message]);
 
     useEffect(() => {
         setMessage("");
-        setHeight(DEFAULT_HT);
-    }, [thread?.id])
+        setLines(1);
+    }, [thread?.id]);
+
+    // submit
 
     const submit = async () => {
         if (loading) return;
@@ -36,12 +54,12 @@ export default function NewMessage({thread}: { thread: WithId<ThreadWithMembers>
         try {
             if (message.length === 0 || message.length > 1000) return;
             if (message.replace(/\s/g, "").length === 0) return;
-            if (!chatConfig?.language) return;
+            if (!langConfig?.language) return;
 
-            await api.sendMessage(thread.id, message, chatConfig.language)
+            await api.sendMessage(thread.id, message, langConfig.language)
 
             setMessage("");
-            setHeight(DEFAULT_HT);
+            setLines(1);
         } catch (e) {
             console.error(e);
         }
@@ -49,23 +67,27 @@ export default function NewMessage({thread}: { thread: WithId<ThreadWithMembers>
         setLoading(false);
     }
 
-    const isMobile = window.innerWidth <= 640;
+    const {ios, isMobile} = useLayout();
 
-    const messagePlaceholder = useTranslation("Say hello") + "...";
+    const messagePlaceholder = useTranslation("Message") + "...";
 
+    const buttonDisabled = message.length === 0 || message.length > 1000 || loading;
 
     return <div className={clsx(
-        "flex-none px-4 pt-3 pb-6 border-t-2 border-gray-200",
-        "flex flex-col"
+        "flex-none px-4 py-3 lg:pb-6 border-t-2 border-border",
+        "flex gap-x-2 lg:flex-col",
+        {"pb-6": ios && isMobile}
     )}>
         <textarea
             ref={textarea}
             className={clsx(
-                "w-full rounded-lg bg-gray-100 px-3 py-2 resize-none border border-gray-200/20"
+                "w-full bg-input border border-input-border px-3 py-2 resize-none",
+                "placeholder:text-copy-gray",
+                {"rounded-3xl": isMobile},
+                {"rounded-lg": !isMobile},
             )}
-            style={{
-                height
-            }}
+            // style={{height}}
+            rows={lines}
             placeholder={messagePlaceholder}
             value={message}
             onChange={(e) => {
@@ -82,19 +104,24 @@ export default function NewMessage({thread}: { thread: WithId<ThreadWithMembers>
             }}
         />
         <div className="flex">
-            <p className="text-sm text-gray-500/70 select-none hidden lg:inline-block">
+            <p className="text-sm text-copy-gray select-none hidden lg:inline-block">
                 <T>enter to send, shift+enter for newline</T>
             </p>
             <div className="flex-grow"/>
-            <button
-                className={`bg-blue-500 hover:bg-blue-600 px-4 py-2 mt-2 text-white text-center
-                            rounded-lg hover:disabled:cursor-not-allowed
-                            disabled:bg-gray-500 hover:disabled:bg-gray-500 flex-none`}
-                disabled={message.length === 0 || message.length > 1000 || loading}
+            <Button
+                className={clsx(
+                    "px-4 py-2 lg:mt-2",
+                    {"hidden": buttonDisabled && isMobile}
+                )}
+                disabled={buttonDisabled}
                 onClick={submit}
+                pill={isMobile}
             >
-                <i className="fa fa-send mr-1"/> <T>Send</T>
-            </button>
+                <i className="fa fa-send"/>
+                <span className="ml-2 hidden lg:inline-block">
+                    <T>Send</T>
+                </span>
+            </Button>
         </div>
 
     </div>

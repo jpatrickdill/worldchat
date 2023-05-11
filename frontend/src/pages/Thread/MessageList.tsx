@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import {useContext, useEffect, useRef, useState} from "react";
+import {ReactElement, useContext, useEffect, useLayoutEffect, useRef, useState, WheelEventHandler} from "react";
 import {
     Timestamp,
     query,
@@ -17,11 +17,12 @@ import {useAuthState} from "react-firebase-hooks/auth";
 import {getAuth} from "firebase/auth";
 import {MessageT} from "@/schemas/message";
 import {WithId} from "@/schemas/types";
-import {ThreadWithMembers} from "@/contexts/ThreadsContext";
+import {LoadedThread} from "@/contexts/ThreadsContext";
 import Loading from "@/components/Loading";
 import {useUser} from "@/contexts/UserContext";
 import Message from "@/pages/Thread/Message";
 import {T} from "@/contexts/TransContext";
+import {useLayout} from "@/layout/Layout";
 
 const formatTimestamp = (ts: Timestamp) => moment(ts.toDate()).format("MMMM DD, h:mm A")
 
@@ -29,10 +30,12 @@ const getScrollBottom = (el: HTMLElement) => {
     return el.scrollHeight - el.offsetHeight - el.scrollTop;
 }
 
-export default function MessageList({thread}: { thread: WithId<ThreadWithMembers> }) {
+export default function MessageList({thread}: { thread: WithId<LoadedThread> }) {
     const threadId = thread.id;
 
     const {user} = useUser();
+
+    const {isMobile} = useLayout();
 
     const [oldMessages, setOldMessages] = useState<WithId<MessageT>[]>([]);
     const [newMessages, setNewMessages] = useState<WithId<MessageT>[]>([]);
@@ -40,23 +43,16 @@ export default function MessageList({thread}: { thread: WithId<ThreadWithMembers
     const [loading, setLoading] = useState(false);
     const [loadedOldest, setLoadedOldest] = useState(false);
     const [earliestDate, setEarliestDate] = useState<Timestamp>();
+    const [isBottom, setIsBottom] = useState(true);
+    const [prevHeight, setPrevHeight] = useState(0);
     const PER_LOAD = 10;
 
     const [hoveringMsg, setHoveringMsg] = useState<string>();
 
     const containerRef = useRef<HTMLDivElement>(null);
 
-    const maybeScroll = () => {
-        if (containerRef.current && (getScrollBottom(containerRef.current) === 0)) {
-            setTimeout(() => {
-                if (!containerRef.current) return;
-
-                containerRef.current.scrollTop = containerRef.current.scrollHeight
-            }, 10)
-        }
-    }
-
     const loadMessages = async (reset?: boolean) => {
+        if (loading) return;
         setLoading(true);
 
         let q = query(
@@ -82,7 +78,6 @@ export default function MessageList({thread}: { thread: WithId<ThreadWithMembers
         if (snap.size < PER_LOAD) setLoadedOldest(true);
 
         setLoading(false);
-        maybeScroll();
     }
 
     // initial load
@@ -92,8 +87,9 @@ export default function MessageList({thread}: { thread: WithId<ThreadWithMembers
         setNewMessages([]);
         setEarliestDate(undefined);
         setLoadedOldest(false);
+        setIsBottom(true);
 
-        loadMessages(true).then()
+        loadMessages(true).then();
 
         // listen for new messages
         let q = query(
@@ -109,52 +105,73 @@ export default function MessageList({thread}: { thread: WithId<ThreadWithMembers
                     id: doc.id
                 } as WithId<MessageT>))
             );
-
-            maybeScroll()
         })
     }, [threadId]);
 
+    // scroll to bottom for new messages if already at bottom
+    useEffect(() => {
+        if (!containerRef.current) return;
+
+        const scrollHeight = containerRef.current.scrollHeight
+
+        if (isBottom) {
+            containerRef.current.scrollTop = scrollHeight;
+        }
+
+        if (isMobile) containerRef.current.scrollTop = scrollHeight + (scrollHeight - prevHeight);
+    }, [oldMessages, newMessages]);
+
     const messages = [...oldMessages, ...newMessages];
+
 
     // group messages by author
 
-    const messageGroups: {
+    let messageGroups: {
+        key: string,
         author: MessageT["author"],
         messages: WithId<MessageT>[]
-    }[] = messages.length ? [{
-        author: messages[0].author,
-        messages: []
-    }] : [];
+    }[] = [];
 
-    for (let message of messages) {
-        if (message.author.id !== messageGroups[messageGroups.length - 1].author.id) {
-            messageGroups.push({
-                author: message.author,
-                messages: []
-            })
-        }
+    if (messages.length > 0) {
+        messageGroups = messages.reduce((acc, cur, idx, src) => {
+            const prev = idx > 0 ? src[idx-1] : undefined;
 
-        messageGroups[messageGroups.length - 1].messages.push(message);
+            if (cur.author.id !== prev?.author?.id) {
+                acc.push({key: cur.id, author: cur.author, messages: []});
+            } else if (cur.createdAt.toDate().valueOf() - (prev?.createdAt.toDate().valueOf() || 0) > 5*60*1000) {
+                acc.push({key: cur.id, author: cur.author, messages: []});
+            }
+
+            acc.at(-1)?.messages?.push(cur);
+
+            return acc;
+        }, messageGroups);
     }
 
     const MSG_PAD = "px-3 py-1"
 
+    const onScroll = (e: any) => {
+        if (e.currentTarget.scrollTop === 0 && !loadedOldest && !isMobile) loadMessages().then();
+
+        // is at bottom of messages list?
+        // used for autoscrolling
+        setIsBottom(getScrollBottom(e.currentTarget) === 0);
+    }
+
     return <div
         className={clsx(
-            "flex-grow overflow-y-scroll overflow-x-hidden",
+            "overflow-y-scroll h-full",
             "flex flex-col gap-y-2 py-2"
         )}
-        onWheel={(e) => {
-            if (e.deltaY >= 0) return;
-            if (e.currentTarget.scrollTop === 0 && !loadedOldest) loadMessages().then();
-        }}
+        onWheel={onScroll as WheelEventHandler<HTMLDivElement>}
+        onDrag={onScroll}
         id="messages"
         ref={containerRef}
     >
         {!loadedOldest ? <div
             className={clsx(
                 "w-full flex items-center justify-center pb-2",
-                "text-gray-500 border-b border-gray-200 select-none"
+                "text-copy-gray border-b border-background-accent-darker select-none"
             )}
             onClick={() => loadMessages().then()}
         >
@@ -175,20 +192,23 @@ export default function MessageList({thread}: { thread: WithId<ThreadWithMembers
             {/*{*/}
             {/*    group.messages[0].createdAt*/}
             {/*}*/}
-            <div className={clsx(
-                "flex gap-2 relative w-full"
-            )}>
+            <div
+                className={clsx(
+                    "flex gap-2 relative w-full"
+                )}
+                key={group.key}
+            >
                 <div className="flex-grow flex flex-col w-full">
                     <div className={clsx(
-                        "flex gap-x-2 items-center text-gray-500 select-none",
+                        "flex gap-x-2 items-center text-copy-gray select-none",
                         {"hidden": group.messages[0].author.id === user?.uid},
                         MSG_PAD
                     )}>
                         <Link
-                            className="text-gray-800 font-semibold hover:underline"
-                            to={`/user/${group.author}`}
+                            className="text-copy-dark font-semibold hover:underline"
+                            to={`/user/${group.author.id}`}
                         >
-                            {(thread.membersMap[group.author.id])?.displayName || "?"}
+                            {(thread.membersMap[group.author.id])?.profile.displayName || "?"}
                         </Link>
                         <span>&middot;</span>
                         <span>{formatTimestamp(group.messages[0].createdAt)}</span>

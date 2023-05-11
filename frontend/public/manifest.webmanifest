@@ -1,0 +1,19 @@
+{
+  "name": "World Chat",
+  "display": "fullscreen",
+  "short_name": "World Chat",
+  "categories": [
+    "social"
+  ],
+  "start_url": "https://tardis-chat.web.app",
+  "scope": "https://tardis-chat.web.app",
+  "description": "Chat with your friends in any language.",
+  "icons": [
+    {
+      "src": "https://tardis-chat.web.app/icon132.png",
+      "sizes": "132x132",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

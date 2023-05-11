@@ -19,3 +19,5 @@ export const threadSchema = z.object({
 })
 
 export type ThreadT = z.infer<typeof threadSchema>;
+
+// thread settings

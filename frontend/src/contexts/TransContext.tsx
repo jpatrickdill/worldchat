@@ -57,7 +57,7 @@ export function TransContextProvider({children}: {children?: ReactNode}) {
 export const useTransContext = () => useContext(TransContext);
 
 export const useTranslation = (text?: string) => {
-    const {chatConfig, configLoading} = useUser();
+    const {langConfig, configLoading} = useUser();
 
     const {onStartTranslation, onStopTranslation} = useTransContext();
 
@@ -66,7 +66,7 @@ export const useTranslation = (text?: string) => {
 
     const [result, setResult] = useState<string>();
 
-    const language = chatConfig?.language;
+    const language = langConfig?.language;
     const code = language?.code;
     const region = language?.region;
     const transId = getFirestoreId(text || "");
@@ -138,20 +138,22 @@ export const useTranslation = (text?: string) => {
                             onStopTranslation(transId);
                         })
                         .catch(e => {
+                            onStopTranslation(transId);
+
                             if (e.response) {
-                                alert(e.response.data.message);
+                                console.error(e.response.data.message);
                             } else {
-                                alert((e as Error).message)
+                                console.error((e as Error).message)
                             }
                         });
                 }
             });
-    }, [text, chatConfig, configLoading, api?.authenticated, result]);
+    }, [text, langConfig, configLoading, api?.authenticated, result]);
 
     useEffect(() => {
         // reset result if text or language changes
         setResult(undefined);
-    }, [text, chatConfig])
+    }, [text, langConfig])
 
     if (local_cache[`${transId}--${langId}`]) {
         return local_cache[`${transId}--${langId}`];
@@ -205,14 +207,14 @@ export function LoadingTranslationsAlert() {
     // as the message inside this alert will also get translated (and get included in the count)
 
     const {inProgress} = useTransContext();
-    const {chatConfig} = useUser();
+    const {langConfig} = useUser();
 
     if (inProgress > 0) {
         return <Alert id="translating" loading minDuration={1000}>
             <T>
                 Please wait while we finish translating the UI to
             </T>
-            <span> {chatConfig?.language?.name}... </span>
+            <span> {langConfig?.language?.name}... </span>
         </Alert>
     }
 

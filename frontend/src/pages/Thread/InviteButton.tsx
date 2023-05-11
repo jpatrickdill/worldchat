@@ -2,7 +2,7 @@ import {useApi} from "@/contexts/ApiContext";
 import React, {ReactNode, useState} from "react";
 import clsx from "clsx";
 import {buttonCls} from "@/styles";
-import Modal from "@/components/Modal";
+import OldModal from "@/contexts/Modals/OldModal";
 import {useAlerts} from "@/contexts/AlertsContext";
 import {T} from "@/contexts/TransContext";
 import Loading from "@/components/Loading";
@@ -23,7 +23,7 @@ export default function InviteButton({threadId, children, className}: {
 
     return <>
         <button
-            className={clsx(buttonCls, "bg-transparent hover:bg-gray-200/75", className)}
+            className={clsx(buttonCls, "bg-transparent hover:bg-background-accent-darker/75", className)}
             disabled={loading}
             onClick={async () => {
                 if (inviteCode) {
@@ -50,9 +50,9 @@ export default function InviteButton({threadId, children, className}: {
             </>}
         </button>
 
-        <Modal onClose={() => setShowModal(false)} showing={showModal} className={clsx(
+        <OldModal onClose={() => setShowModal(false)} showing={showModal} className={clsx(
             "mx-auto w-full max-w-lg lg:rounded-lg",
-            "px-3 py-2 lg:p-5 bg-white shadow-sm",
+            "px-3 py-2 lg:p-5 bg-background shadow-sm",
             "flex flex-col gap-2"
         )}>
             {loading ? <>
@@ -64,12 +64,12 @@ export default function InviteButton({threadId, children, className}: {
 
                 <input
                     className={clsx(
-                        "w-full rounded-lg bg-gray-100 px-3 py-2 border border-gray-200/20"
+                        "w-full rounded-lg bg-background-accent px-3 py-2 border border-background-accent-darker/20"
                     )}
                     readOnly
                     value={linkPrefix + inviteCode}
                 />
             </>}
-        </Modal>
+        </OldModal>
     </>
 }

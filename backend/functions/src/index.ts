@@ -7,5 +7,8 @@ import * as functions from "firebase-functions";
 admin.initializeApp();
 
 import app from "./api";
+import {onAccountCreate} from "./triggers";
 
 export const api = functions.https.onRequest(app);
+export {onAccountCreate};
+

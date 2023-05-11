@@ -27,12 +27,12 @@ export default function WordMark({className}: {className?: string}) {
     const earthIcon = earthIcons.at(earthIdx) || earthIcons[0];
 
     return <div className={clsx(
-        "flex gap-2 items-center select-none font-bold text-blue-600",
+        "flex gap-2 items-center select-none font-bold text-primary-dark",
         className
     )}>
         <span>
             <i className={`fa fa-earth-${earthIcon}`}/> <i className="fa fa-comment"/>
         </span>
-        <T>World Chat</T>
+        <T>Hello Planet</T>
     </div>
 }

@@ -51,7 +51,7 @@ function AlertBox({children, alert, onClose}: {
     return <div
         className={clsx(
             "rounded-lg overflow-hidden transition-transform",
-            "bg-gray-800/75 text-white",
+            "bg-gray-800/75 text-copy-white",
             "flex items-stretch",
         )}
         onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
@@ -82,7 +82,7 @@ function AlertBox({children, alert, onClose}: {
         {alert.canClose ? <button
             className={clsx(
                 "w-10 flex-none border-l border-gray-400",
-                "transition-[background-color] hover:bg-gray-500",
+                "transition-[background-color] hover:bg-copy-gray",
                 {"opacity-0": !hover}
             )}
             onClick={closeCb}

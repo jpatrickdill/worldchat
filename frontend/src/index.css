@@ -8,10 +8,33 @@
     font-weight: 400;
     tab-size: 4;
 
-    /*color-scheme: light dark;*/
+    /* color-scheme: light dark; */
     font-synthesis: none;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     -webkit-text-size-adjust: 100%;
+
+    --c-background: white;
+    --c-background-accent: white;
+    --c-border: white;
+    --c-copy: black;
+}
+
+.select-dropdown {
+    background-color: var(--c-background);
+    border-color: var(--c-border);
+    color: var(--c-copy);
+}
+
+input {
+    background-color: var(--c-background-accent);
+}
+
+:root {
+    --app-height: 100vh;
+}
+
+.h-mobile {
+    height: var(--app-height);
 }

@@ -6,7 +6,9 @@ export const chatConfigSchema = z.object({
 
     language: languageSchema.optional(),
 
-    setupComplete: z.boolean().default(false)
+    setupComplete: z.boolean().default(false),
+
+    theme: z.string().default("light")
 })
 
 export type ChatConfigType = z.infer<typeof chatConfigSchema>

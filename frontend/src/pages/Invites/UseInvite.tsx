@@ -1,6 +1,6 @@
 import {useParams} from "react-router-dom";
 import React, {useEffect, useState} from "react";
-import Modal from "@/components/Modal";
+import OldModal from "@/contexts/Modals/OldModal";
 import {useNavigate} from "react-router";
 import clsx from "clsx";
 import {T} from "@/contexts/TransContext";
@@ -35,9 +35,9 @@ export default function UseInvite() {
             })
     }, [inviteId])
 
-    return <Modal showing className={clsx(
+    return <OldModal showing className={clsx(
         "mx-auto w-full max-w-md lg:rounded-lg",
-        "px-3 py-2 lg:p-5 bg-white shadow-sm",
+        "px-3 py-2 lg:p-5 bg-background shadow-sm",
         "flex flex-col gap-2"
     )}>
         {err ? <p>
@@ -47,5 +47,5 @@ export default function UseInvite() {
         </p> : <p>
             <T>Checking your invite...</T>
         </p>}
-    </Modal>
+    </OldModal>
 }

@@ -6,15 +6,17 @@ import {getAuth, getIdToken} from "firebase/auth";
 import {useAuthState} from "react-firebase-hooks/auth";
 import {ThreadT} from "../schemas/thread";
 import {LanguageType} from "@/schemas/langauge";
+import {ProfileType} from "@/schemas/profile";
 
 const BASE_URLs = {
-    dev: "http://127.0.0.1:5001/tardis-chat/us-central1/api",
+    dev: `http://${window.location.hostname}:5001/tardis-chat/us-central1/api`,
     prod: "https://us-central1-tardis-chat.cloudfunctions.net/api"
 }
 
 const detectEnvironment = () => {
     if (
-        window.location.hostname.includes("localhost") || window.location.hostname.includes("127.0.0.1")
+        window.location.hostname.includes("localhost")
+        || (window.location.hostname.split(".").length > 3)
     ) return "dev";
 
     return "prod";
@@ -23,12 +25,13 @@ const detectEnvironment = () => {
 class Api {
     http: AxiosInstance;
     authenticated: boolean;
+    base: string;
 
     constructor(token?: string) {
-        let base = BASE_URLs[detectEnvironment()];
+        this.base = BASE_URLs[detectEnvironment()];
 
         this.http = axios.create({
-            baseURL: base,
+            baseURL: this.base,
             headers: {
                 Authorization: token || ""
             }
@@ -39,20 +42,26 @@ class Api {
 
     // error handler
 
-    handleAxiosErr<T>(err: unknown) {
-        console.log(err);
-        if (isAxiosError(err)) {
-            if (err.response) {
-                throw new Error(err.response.data.message)
-            } else {
-                throw err;
-            }
+    handleAxiosErr<T>(err: any) {
+        console.error(err);
+        if (err.response) {
+            throw new Error(err.response.data.message)
         } else {
             throw err;
         }
 
         // noinspection UnreachableCodeJS
         return undefined as T;
+    }
+
+    // user
+    async updateProfile(data: Partial<ProfileType>) {
+        try {
+            const res = await this.http.post("/profile/update", data);
+            return res.data as ProfileType;
+        } catch (err) {
+            return this.handleAxiosErr(err);
+        }
     }
 
     // threads
@@ -62,7 +71,7 @@ class Api {
                 type: threadType
             });
             return res.data.threadId as string;
-        }  catch (err) {
+        } catch (err) {
             return this.handleAxiosErr(err);
         }
     }
@@ -72,7 +81,7 @@ class Api {
             const res = await this.http.post(`/threads/${threadId}/invite`);
 
             return res.data.inviteId as string;
-        }  catch (err) {
+        } catch (err) {
             return this.handleAxiosErr(err);
         }
     }
@@ -82,7 +91,7 @@ class Api {
             const res = await this.http.post(`threads/join/${inviteCode}`);
 
             return res.data.threadId as string;
-        }  catch (err) {
+        } catch (err) {
             return this.handleAxiosErr(err);
         }
     }
@@ -94,7 +103,7 @@ class Api {
             });
 
             return res.data.messageId as string;
-        }  catch (err) {
+        } catch (err) {
             return this.handleAxiosErr(err);
         }
     }
@@ -102,7 +111,7 @@ class Api {
 
 const ApiContext = createContext<Api>(new Api());
 
-export function ApiProvider({children}: {children?: ReactNode}) {
+export function ApiProvider({children}: { children?: ReactNode }) {
     const [user, userLoading] = useAuthState(getAuth());
     const [api, setApi] = useState<Api>(new Api());
 

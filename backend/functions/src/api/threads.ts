@@ -208,6 +208,9 @@ threads.post("/:threadId/message", async (req, res: AuthedRes) => {
     });
 
     const messageRef = await threadRef.collection("messages").add(messageObj);
+    await threadRef.update({
+        lastMessage: messageObj
+    });
 
     // get languages to translate to, then translate.
     // Use then here so the request can close while translation is still happening
@@ -216,13 +219,13 @@ threads.post("/:threadId/message", async (req, res: AuthedRes) => {
     )
         .then(async (memberLanguages) => {
             try {
-                let translations = await translateMessage({
+                let translations = memberLanguages.length > 0 ? await translateMessage({
                     content,
                     dialect: language,
                     to: memberLanguages
-                });
+                }) : [];
 
-                await messageRef.update({
+                const newData = {
                     translations: [
                         ...translations,
                         {
@@ -232,6 +235,14 @@ threads.post("/:threadId/message", async (req, res: AuthedRes) => {
                     ],
                     status: "translated",
                     statusMessage: null
+                }
+
+                await messageRef.update(newData);
+                await threadRef.update({
+                    lastMessage: {
+                        ...messageObj,
+                        ...newData
+                    }
                 });
             } catch (e) {
                 await messageRef.update({

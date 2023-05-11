@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "npx kill-port 3000 && vite dev --port 3000",
+    "dev": "npx kill-port 3000 && vite dev --host --port 3000",
     "build": "tsc && vite build",
     "deploy": "vite build && firebase deploy --only hosting",
     "preview": "vite preview"
@@ -19,16 +19,20 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-firebase-hooks": "^5.1.1",
+    "react-helmet": "^6.1.0",
+    "react-phone-input-2": "^2.15.1",
     "react-router": "^6.9.0",
     "react-router-dom": "^6.9.0",
     "react-select": "^5.7.2",
     "react-spinners": "^0.13.8",
+    "react-swipeable": "^7.0.0",
     "uuid": "^9.0.0",
     "zod": "^3.21.4"
   },
   "devDependencies": {
     "@types/react": "^18.0.28",
     "@types/react-dom": "^18.0.11",
+    "@types/react-helmet": "^6.1.6",
     "@vitejs/plugin-react": "^3.1.0",
     "autoprefixer": "^10.4.14",
     "postcss": "^8.4.21",

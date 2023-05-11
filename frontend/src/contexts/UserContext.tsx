@@ -3,26 +3,22 @@ import {User, getAuth, signInAnonymously} from "firebase/auth";
 import {useAuthState} from "react-firebase-hooks/auth";
 import {doc, getFirestore, updateDoc, setDoc} from "firebase/firestore";
 import {useDocumentData} from "react-firebase-hooks/firestore";
-import {ChatConfigType, chatConfigSchema} from "../schemas/config";
+import {LangConfigType, langConfigSchema} from "../schemas/config";
 import {Outlet} from "react-router";
 import InitialSetup from "../pages/InitialSetup/InitialSetup";
 import {getLangName} from "@/components/LanguageDropdown";
+import {useTheme} from "@/theme";
 
 interface userContextT {
-    chatConfig?: ChatConfigType,
+    langConfig?: LangConfigType,
     configLoading: boolean
-    updateChatConfig: (fields: {[key: string]: any}) => Promise<void>,
+    updateLangConfig: (fields: {[key: string]: any}) => Promise<void>,
 
     user?: User | null,
     userLoading: boolean,
 }
 
-const defaultVal: userContextT = {
-    userLoading: true, configLoading: true,
-    updateChatConfig: async (fields) => {}
-}
-
-const UserContext = createContext<userContextT>(defaultVal);
+const UserContext = createContext<userContextT>(undefined!);
 
 export function UserContextProvider({children}: {children?: ReactNode}) {
     const [authUser, authLoading] = useAuthState(getAuth());
@@ -44,14 +40,14 @@ export function UserContextProvider({children}: {children?: ReactNode}) {
         }
     }, [configData, configLoading, authUser])
 
-    let chatConfig: ChatConfigType | undefined;
+    let chatConfig: LangConfigType | undefined;
 
-    if (configData) chatConfig = configData as ChatConfigType;
+    if (configData) chatConfig = configData as LangConfigType;
 
     const ctxVal: userContextT = {
-        chatConfig: chatConfig,
+        langConfig: chatConfig,
         configLoading: configLoading,
-        updateChatConfig: async (fields: {[key: string]: any}) => {
+        updateLangConfig: async (fields: {[key: string]: any}) => {
             await updateDoc(configDocRef, fields);
         },
 
@@ -78,7 +74,7 @@ export function UserContextProvider({children}: {children?: ReactNode}) {
                     });
                 })
         }
-    }, [authLoading, authUser])
+    }, [authLoading, authUser]);
 
     return <UserContext.Provider value={ctxVal}>
         {children}

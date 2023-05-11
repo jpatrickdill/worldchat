@@ -10,10 +10,10 @@ export default function Welcome() {
 
     return <>
         <TopBar>
-            Test {showAlert}
+            WorldChat Beta
         </TopBar>
 
-        <PageContent>
+        <PageContent className="p-2">
             <h1 className="text-lg font-bold">
                 <T>
                     Welcome to WorldChat! :-D

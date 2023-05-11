@@ -7,24 +7,21 @@ import {buttonCls, inputCls} from "@/styles";
 import clsx from "clsx";
 
 export default function LanguageSettings() {
-    const {chatConfig, updateChatConfig} = useUser();
+    const {langConfig, updateLangConfig} = useUser();
 
     const [lang, setLang] = useState<LanguageType>();
     const regionPlaceholder = useTranslation("Optional");
 
     useEffect(() => {
-        if (chatConfig?.language) setLang(chatConfig.language);
-    }, [chatConfig]);
+        if (langConfig?.language) setLang(langConfig.language);
+    }, [langConfig]);
 
-    console.log(chatConfig);
+    console.log(langConfig);
 
 
     return <div className="flex flex-col items-stretch gap-2">
         <div>
-            <h1 className="text-lg font-semibold underline underline-offset-2">
-                <T>Language</T>
-            </h1>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-copy-gray">
                 <T>
                     If you change your language, old messages won't be translated, and may not be
                     visible in your new language.
@@ -44,7 +41,7 @@ export default function LanguageSettings() {
 
                 // for input (save button)
                 setLang(newLang);
-                await updateChatConfig({language: newLang});
+                await updateLangConfig({language: newLang});
             }}
         />
 
@@ -68,11 +65,11 @@ export default function LanguageSettings() {
             />
         </div>
 
-        {(lang?.region || "") !== (chatConfig?.language?.region || "") ? <>
+        {(lang?.region || "") !== (langConfig?.language?.region || "") ? <>
             <button
-                className={clsx(buttonCls, "bg-green-500 hover:bg-green-600 text-white justify-center font-semibold")}
+                className={clsx(buttonCls, "bg-green-500 hover:bg-green-600 text-copy-white justify-center font-semibold")}
                 onClick={async () => {
-                    await updateChatConfig({language: lang});
+                    await updateLangConfig({language: lang});
                 }}
             >
                 <i className="fa fa-check"/> <T>Save</T>
