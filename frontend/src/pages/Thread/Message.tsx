@@ -8,16 +8,9 @@ import {BeatLoader} from "react-spinners";
 import {LanguageType} from "@/schemas/langauge";
 import LanguageDropdown from "@/components/LanguageDropdown";
 import {T} from "@/contexts/TransContext";
+import {langCompare} from "@/utils/misc";
+import {useClosestTranslation} from "@/utils/hooks";
 
-// language sort key function for finding closest translation
-// 0 = exact match
-// 2 = language matches but not region
-// 4 = no match
-const langCompare = (a: LanguageType, b: LanguageType) => {
-    if (a.code !== b.code && a.name.toLowerCase() !== b.code.toLowerCase()) return 4;
-
-    return ((a.region || "").toLowerCase() === (b.region || "").toLowerCase()) ? 0 : 2
-}
 
 type Translation = MessageT["message"];
 
@@ -28,24 +21,7 @@ export default function Message({message}: { message: WithId<MessageT> }) {
 
     const {status} = message;
 
-    const closestMatch = useMemo(() => {
-        if (!langConfig?.language) return;
-
-        let myLang = langConfig.language;
-        let translations = [...message.translations];
-
-        translations.sort((a, b) => {
-            return langCompare(myLang, a.language) - langCompare(myLang, b.language);
-        });
-
-        let closest = translations.at(0);
-
-
-        if (!closest) return;
-        if (langCompare(myLang, closest.language) === 4) return;
-
-        return closest;
-    }, [message.translations])
+    const closestMatch = useClosestTranslation(message);
 
     let msgErr = false;
 
