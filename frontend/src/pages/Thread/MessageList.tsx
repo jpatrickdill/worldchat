@@ -23,6 +23,7 @@ import {useUser} from "@/contexts/UserContext";
 import Message from "@/pages/Thread/Message";
 import {T} from "@/contexts/TransContext";
 import {useLayout} from "@/layout/Layout";
+import {LanguageType} from "@/schemas/langauge";
 
 const formatTimestamp = (ts: Timestamp) => moment(ts.toDate()).format("MMMM DD, h:mm A")
 
@@ -30,7 +31,7 @@ const getScrollBottom = (el: HTMLElement) => {
     return el.scrollHeight - el.offsetHeight - el.scrollTop;
 }
 
-export default function MessageList({thread}: { thread: WithId<LoadedThread> }) {
+export default function MessageList({thread, language}: { thread: WithId<LoadedThread>, language?: LanguageType }) {
     const threadId = thread.id;
 
     const {user} = useUser();
@@ -114,7 +115,7 @@ export default function MessageList({thread}: { thread: WithId<LoadedThread> }) 
 
         const scrollHeight = containerRef.current.scrollHeight
 
-        if (isBottom) {
+        if (isBottom && !isMobile) {
             containerRef.current.scrollTop = scrollHeight;
         }
 
@@ -215,7 +216,7 @@ export default function MessageList({thread}: { thread: WithId<LoadedThread> }) 
                     </div>
 
                     {group.messages.map((msg) => <>
-                        <Message message={msg}/>
+                        <Message message={msg} language={language}/>
                     </>)}
                 </div>
             </div>

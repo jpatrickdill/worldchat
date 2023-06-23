@@ -4,6 +4,7 @@ import {useLayout} from "@/layout/Layout";
 import clsx from "clsx";
 import Helmet from "react-helmet";
 import {MobileModalDisplay} from "@/contexts/Modals/MobileModalDisplay";
+import {DesktopModalDisplay} from "@/contexts/Modals/DesktopModalDisplay";
 
 const DURATION = 500;
 const SCALE_FACTOR = 0.1;
@@ -17,7 +18,8 @@ export interface ModalProps {
     depth?: number,
     animateOut?: boolean,
     className?: string,
-    buttonEl?: ReactNode
+    buttonEl?: ReactNode,
+    size?: "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl",
 }
 
 interface ModalContextT {
@@ -97,7 +99,9 @@ export function ModalsProvider({children}: { children?: ReactNode }) {
                 setInitial(false);
             }
         }
-    }, [modalShowing])
+    }, [modalShowing]);
+
+    const ModalComponent = isMobile ? MobileModalDisplay : DesktopModalDisplay;
 
     return <modalsContext.Provider value={{registerModal, removeModal}}>
         <>
@@ -113,16 +117,16 @@ export function ModalsProvider({children}: { children?: ReactNode }) {
                 style={{
                     transform: isScaled ? `scale(${1 - SCALE_FACTOR})` : "scale(1)",
                     borderRadius: isScaled ? "1em" : "0",
-                    transitionProperty: "transform, filter, border-radius",
+                    transitionProperty: "transform, border-radius" + (isMobile ? ", filter" : ""),
                     transitionDuration: `${DURATION}ms`,
-                    filter: isScaled ? "brightness(0.8)" : ""
+                    filter: modalShowing ? "brightness(0.8)" : ""
                 }}
             >
                 {children}
             </div>
 
             {/* modals */}
-            {Array.from(modals.values()).map(modal => <MobileModalDisplay
+            {Array.from(modals.values()).map(modal => <ModalComponent
                 {...modal} top={TOP_DIST + 16}
                 transitionDuration={DURATION}
             />)}

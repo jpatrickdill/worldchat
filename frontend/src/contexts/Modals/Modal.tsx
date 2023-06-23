@@ -7,6 +7,16 @@ export default function Modal(props: ModalProps) {
     const {registerModal, removeModal} = useModals();
     const [modalId] = useState(uuidv4());
 
+    props = {
+        // defaults
+        size: "xl",
+        enabled: true,
+        buttonEl: "Done",
+
+        // user props
+        ...props,
+    };
+
     useEffect(() => {
         if (props.enabled) {
             registerModal(modalId, props);

@@ -15,6 +15,7 @@ export function TopBar({className, children, outerCls, innerCls}: {
         "flex items-stretch",
         className, outerCls,
         {"relative justify-center py-3": isMobile},
+        "relative",
         {"h-14": !isMobile}
     )}>
         {isMobile ? <button

@@ -2,6 +2,7 @@ import {useCallback, useMemo, useState} from "react";
 import {MessageT} from "@/schemas/message";
 import {langCompare} from "@/utils/misc";
 import {useUser} from "@/contexts/UserContext";
+import {LanguageType} from "@/schemas/langauge";
 
 export type HookSet<T> = {
     add: (v: T) => void,
@@ -149,13 +150,14 @@ export const useStateHistory = <T>(value: T, limit = 1) => {
 
 export default useMap;
 
-export const useClosestTranslation = (message?: MessageT) => {
+export const useClosestTranslation = (message?: MessageT, language?: LanguageType) => {
     const {langConfig} = useUser();
+    language ??= langConfig?.language;
 
     return useMemo(() => {
-        if (!langConfig?.language) return;
+        if (!language) return;
 
-        let myLang = langConfig.language;
+        let myLang = language;
         let translations = [...(message?.translations || [])];
 
         translations.sort((a, b) => {
@@ -169,5 +171,5 @@ export const useClosestTranslation = (message?: MessageT) => {
         if (langCompare(myLang, closest.language) === 4) return;
 
         return closest;
-    }, [message?.translations, langConfig?.language?.code, langConfig?.language?.region]);
+    }, [message?.translations, language]);
 }

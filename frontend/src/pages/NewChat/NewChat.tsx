@@ -7,11 +7,13 @@ import {T, useTranslation} from "@/contexts/TransContext";
 import Button from "@/components/Button";
 import {useApi} from "@/contexts/ApiContext";
 import {useNavigate} from "react-router";
+import {useLayout} from "@/layout/Layout";
 
 export default function NewChat({enabled, onClose}: { enabled: boolean, onClose: () => void }) {
     const [members, setMembers] = useState<WithId<ProfileType>[]>([]);
     const [creating, setCreating] = useState(false);
     const [err, setErr] = useState<string>();
+    const {isMobile} = useLayout();
     const api = useApi();
     const navigate = useNavigate();
 
@@ -46,9 +48,13 @@ export default function NewChat({enabled, onClose}: { enabled: boolean, onClose:
                 placeholder={`${memberSearchPlaceholder}...`}
             />
 
-            <div className="flex-grow"/>
+            <div
+                className="flex-grow"
+                style={isMobile ? {} : {minHeight: 100}}
+            >
+            </div>
 
-            <div className="px-2 pb-2">
+            <div className="px-2 pb-2 pt-2">
                 <div className="rounded-lg bg-background-accent text-copy-dark text-center p-3">
                     <T>
                         After the chat is created, an invite link will be generated

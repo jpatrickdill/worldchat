@@ -8,7 +8,7 @@ export default function ProfilePic({userId, imageId, size=32, fallbackCls, class
     userId?: string | null, imageId?: string | null, size?: number, fallbackCls?: string, className?: string
 }) {
     const [resolvedImageId, setResolvedImageId] = useState<string | null | undefined>(imageId);
-    const [displayName, setDisplayName] = useState<string>()
+    const [displayName, setDisplayName] = useState<string>();
 
     useEffect(() => {
         if (!imageId) {
@@ -29,7 +29,7 @@ export default function ProfilePic({userId, imageId, size=32, fallbackCls, class
                     }
                 });
         }
-    });
+    }, [imageId, userId]);
 
     const initials = useMemo(() => {
         if (!displayName) return "";

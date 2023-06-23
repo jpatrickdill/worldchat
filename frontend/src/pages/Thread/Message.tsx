@@ -14,14 +14,14 @@ import {useClosestTranslation} from "@/utils/hooks";
 
 type Translation = MessageT["message"];
 
-export default function Message({message}: { message: WithId<MessageT> }) {
+export default function Message({message, language}: { message: WithId<MessageT>, language?: LanguageType }) {
     const {user, langConfig} = useUser();
     const [hover, setHover] = useState(false);
     const [showOpposite, setShowOpposite] = useState(false);
 
     const {status} = message;
 
-    const closestMatch = useClosestTranslation(message);
+    const closestMatch = useClosestTranslation(message, language);
 
     let msgErr = false;
 
@@ -117,26 +117,6 @@ export default function Message({message}: { message: WithId<MessageT> }) {
                 "flex gap-3",
                 {"flex-row-reverse": message.author.id === user?.uid}
             )}>
-                {message.author.id !== user?.uid ? <button
-                    className={clsx("font-semibold text-copy-gray hover:underline")}
-                    onClick={() => setShowOpposite(!showOpposite)}
-                >
-                    {showOpposite ? <T>
-                        Show translation
-                    </T> : <T>
-                        Show original
-                    </T>}
-                </button> : null}
-                {(message.author.id === user?.uid) ? <button
-                    className={clsx("font-semibold text-copy-gray hover:underline")}
-                    onClick={() => setShowOpposite(!showOpposite)}
-                >
-                    {showOpposite ? <T>
-                        Show original
-                    </T> : <T>
-                        Show translation
-                    </T>}
-                </button> : null}
                 <span className="text-copy-gray">
                     {moment(message.createdAt.toDate()).format("h:mm A")}
                 </span>

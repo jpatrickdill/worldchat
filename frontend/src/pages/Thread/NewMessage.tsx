@@ -107,7 +107,7 @@ export default function NewMessage({thread}: { thread: WithId<LoadedThread> }) {
             <p className="text-sm text-copy-gray select-none hidden lg:inline-block">
                 <T>enter to send, shift+enter for newline</T>
             </p>
-            <div className="flex-grow"/>
+            <div className="flex-grow hidden lg:inline-block"/>
             <Button
                 className={clsx(
                     "px-4 py-2 lg:mt-2",

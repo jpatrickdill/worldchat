@@ -6,6 +6,7 @@ import OldModal from "@/contexts/Modals/OldModal";
 import {useAlerts} from "@/contexts/AlertsContext";
 import {T} from "@/contexts/TransContext";
 import Loading from "@/components/Loading";
+import Modal from "@/contexts/Modals/Modal";
 
 export default function InviteButton({threadId, children, className}: {
     threadId: string, children?: ReactNode, className?: string
@@ -18,7 +19,6 @@ export default function InviteButton({threadId, children, className}: {
     const [showModal, setShowModal] = useState(false);
 
     let linkPrefix = window.location.host + "/join/";
-
 
 
     return <>
@@ -50,11 +50,14 @@ export default function InviteButton({threadId, children, className}: {
             </>}
         </button>
 
-        <OldModal onClose={() => setShowModal(false)} showing={showModal} className={clsx(
-            "mx-auto w-full max-w-lg lg:rounded-lg",
-            "px-3 py-2 lg:p-5 bg-background shadow-sm",
+        <Modal
+            onClose={() => setShowModal(false)} enabled={showModal} className={clsx(
+            "lg:rounded-lg",
+            "px-3 py-2 md:p-5",
             "flex flex-col gap-2"
-        )}>
+        )}
+            title="Invite People"
+        >
             {loading ? <>
                 <Loading full/>
             </> : <>
@@ -70,6 +73,6 @@ export default function InviteButton({threadId, children, className}: {
                     value={linkPrefix + inviteCode}
                 />
             </>}
-        </OldModal>
+        </Modal>
     </>
 }

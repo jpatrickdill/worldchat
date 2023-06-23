@@ -14,7 +14,9 @@ import {useLayout} from "@/layout/Layout";
 import {WithId} from "@/schemas/types";
 import {useClosestTranslation} from "@/utils/hooks";
 
-function ThreadListItem({thread, selected}: {thread: WithId<LoadedThread>, selected: boolean}) {
+function ThreadListItem({thread, selected, onHover, onLeave, hideBorder}: {
+    thread: WithId<LoadedThread>, selected: boolean, onHover: () => void, onLeave: () => void, hideBorder?: boolean
+}) {
     const {user} = useUser();
     const {isMobile} = useLayout();
 
@@ -36,11 +38,13 @@ function ThreadListItem({thread, selected}: {thread: WithId<LoadedThread>, selec
         <div>
             <Link
                 className={clsx(
-                    "pl-8 md:pl-4 pr-4",
+                    "pl-8 md:pl-4 pr-4 truncate",
                     "text-sm hover:bg-background-accent-darker",
                     // {"bg-background-accent-darker": thread.id === threadId},
                     "relative flex gap-4 items-center w-full h-full",
                 )}
+                onMouseEnter={onHover}
+                onMouseLeave={onLeave}
                 to={`/t/${thread.id}`}
             >
                 <ProfilePic
@@ -50,11 +54,10 @@ function ThreadListItem({thread, selected}: {thread: WithId<LoadedThread>, selec
 
                 <div className={clsx(
                     "flex-grow h-full flex flex-col justify-center truncate",
-                    // {
-                    //     "border-t border-border": (idx > 0 || isMobile) && ![idx, idx - 1].includes(hoveringIdx as number),
-                    //     "mt-px": (idx > 0 || isMobile) && [idx, idx - 1].includes(hoveringIdx as number)
-                    // },
-                    "border-t border-border",
+                    {
+                        "border-t border-border": !hideBorder,
+                        "mt-px": hideBorder
+                    },
                     "py-3"
                 )}>
                     <h1 className="font-semibold text-md">
@@ -77,6 +80,8 @@ function ThreadListItem({thread, selected}: {thread: WithId<LoadedThread>, selec
 export default function ThreadsList() {
     const {threads} = useThreads();
     const {threadId} = useParams();
+    const [hoveringIdx, setHoveringIdx] = useState(-100);
+    const {isMobile} = useLayout();
 
     return <div className={clsx(
         "w-full h-full",
@@ -88,6 +93,13 @@ export default function ThreadsList() {
                 thread={thread}
                 selected={threadId === thread.id}
                 key={idx}
+                onHover={() => setHoveringIdx(idx)}
+                onLeave={() => {
+                    if (hoveringIdx === idx) {
+                        setHoveringIdx(-100);
+                    }
+                }}
+                hideBorder={(idx === 0 && !isMobile) || [hoveringIdx, hoveringIdx+1].includes(idx)}
             />
         })}
     </div>
